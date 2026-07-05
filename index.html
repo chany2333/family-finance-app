@@ -1,0 +1,2066 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F5B800" />
+  <title>Chany的家庭财务助手</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <style>
+    :root {
+      --bg: #FFF9E6;
+      --card: #FFFFFF;
+      --text: #4A3F35;
+      --muted: #9E8B7D;
+      --primary: #F5B800;
+      --primary-2: #FFE082;
+      --danger: #E85D4E;
+      --warning: #C78D4E;
+      --ok: #6A9E5E;
+      --line: #F5E6C8;
+      --shadow: 0 10px 28px rgba(180, 140, 40, .08);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top left, #FFF0B3 0, transparent 28rem), var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      max-width: 520px;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 18px 14px 92px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      margin: -18px -14px 14px;
+      padding: calc(14px + env(safe-area-inset-top)) 14px 12px;
+      background: rgba(255, 249, 230, .86);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(245, 230, 200, .7);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -.03em;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .76);
+      color: var(--primary);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-weight: 700;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .hero {
+      color: white;
+      background: linear-gradient(135deg, #E8A838, #F5B800 56%, #FFD54F);
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -40px;
+      top: -40px;
+      width: 150px;
+      height: 150px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .18);
+    }
+
+    .hero .label {
+      opacity: .82;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .hero .amount {
+      font-size: 36px;
+      font-weight: 850;
+      letter-spacing: -.05em;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .metric {
+      padding: 10px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .13);
+    }
+
+    .metric span {
+      display: block;
+      font-size: 11px;
+      opacity: .8;
+      margin-bottom: 5px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 15px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .quick {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .quick button, .primary-btn, .ghost-btn, .mini-btn {
+      border-radius: 16px;
+      transition: transform .12s ease, opacity .12s ease;
+    }
+
+    .quick button:active, .primary-btn:active, .ghost-btn:active, .mini-btn:active {
+      transform: scale(.98);
+    }
+
+    .quick button {
+      min-height: 62px;
+      background: var(--card);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(228, 231, 236, .84);
+      font-weight: 750;
+      font-size: 13px;
+    }
+
+    .quick button span {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 3px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(228, 231, 236, .84);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin: 12px 0;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 17px;
+      margin: 0;
+      letter-spacing: -.02em;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .todo-list, .record-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .empty {
+      border: 1px dashed #cfd4dc;
+      border-radius: 16px;
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      background: #fafafa;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .item-title {
+      font-weight: 780;
+      margin-bottom: 4px;
+    }
+
+    .item-meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .money {
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .money.income { color: var(--ok); }
+    .money.expense { color: var(--danger); }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #eef4ff;
+      color: #3538cd;
+    }
+
+    .tag.work { background: #FFF8E1; color: #D4A017; }
+    .tag.private { background: #F0F7EC; color: #6A9E5E; }
+    .tag.due { background: #FFF0ED; color: #E85D4E; }
+    .tag.done { background: #F0F7EC; color: #6A9E5E; }
+
+    .tabs {
+      position: fixed;
+      z-index: 20;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: min(520px, 100%);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+      background: rgba(255, 255, 255, .92);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(14px);
+    }
+
+    .tabs button {
+      border-radius: 14px;
+      padding: 9px 4px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .tabs button.active {
+      background: #e9f7f7;
+      color: var(--primary);
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d0d5dd;
+      border-radius: 14px;
+      padding: 12px;
+      background: white;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(23, 107, 135, .11);
+    }
+
+    textarea { min-height: 76px; resize: vertical; }
+
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .primary-btn {
+      padding: 13px 16px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 850;
+    }
+
+    .ghost-btn, .mini-btn {
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .mini-btn {
+      padding: 7px 9px;
+      font-size: 12px;
+      border-radius: 999px;
+    }
+
+    .danger-btn {
+      color: var(--danger);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .button-row button {
+      flex: 1;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fafafa;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 82px;
+      transform: translateX(-50%) translateY(18px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 12px 14px;
+      background: #101828;
+      color: white;
+      border-radius: 999px;
+      font-size: 13px;
+      z-index: 30;
+      transition: all .2s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .hide { display: none !important; }
+
+    /* 星星装饰 */
+    .star-deco {
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .35;
+      animation: twinkle 3s ease-in-out infinite;
+    }
+    .star-deco svg { width: 100%; height: 100%; }
+    @keyframes twinkle {
+      0%, 100% { opacity: .2; transform: scale(1); }
+      50% { opacity: .55; transform: scale(1.15); }
+    }
+    .star-s1 { width: 18px; height: 18px; top: 8%; left: 6%; animation-delay: 0s; }
+    .star-s2 { width: 14px; height: 14px; top: 18%; right: 8%; animation-delay: .7s; }
+    .star-s3 { width: 22px; height: 22px; top: 35%; left: 3%; animation-delay: 1.3s; }
+    .star-s4 { width: 16px; height: 16px; top: 55%; right: 5%; animation-delay: 2s; }
+    .star-s5 { width: 12px; height: 12px; top: 72%; left: 10%; animation-delay: .4s; }
+    .star-s6 { width: 20px; height: 20px; top: 85%; right: 12%; animation-delay: 1.6s; }
+
+    .hero-stars {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .hero-star {
+      position: absolute;
+      animation: twinkle 2.5s ease-in-out infinite;
+    }
+
+    .cute-icon {
+      font-size: 1.1em;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+
+    /* 星星人装饰 */
+    .star-person {
+      position: absolute;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .star-person-float {
+      animation: starFloat 3s ease-in-out infinite;
+    }
+    @keyframes starFloat {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50% { transform: translateY(-8px) rotate(5deg); }
+    }
+
+    @media (max-width: 390px) {
+      .hero .amount { font-size: 30px; }
+      .metrics { grid-template-columns: 1fr; }
+      .quick { grid-template-columns: repeat(2, 1fr); }
+      .two, .stats-grid { grid-template-columns: 1fr; }
+    }
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: linear-gradient(160deg, #E8A838 0%, #F5B800 50%, #FFD54F 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .lock-screen.hide { display: none; }
+    .lock-screen .lock-icon {
+      font-size: 56px;
+      margin-bottom: 16px;
+    }
+    .lock-screen h2 {
+      color: white;
+      font-size: 22px;
+      margin: 0 0 6px;
+    }
+    .lock-screen .lock-desc {
+      color: rgba(255,255,255,.72);
+      font-size: 13px;
+      margin-bottom: 28px;
+    }
+    .lock-screen .lock-form {
+      width: 100%;
+      max-width: 300px;
+      display: grid;
+      gap: 14px;
+    }
+    .lock-screen .lock-form label {
+      color: rgba(255,255,255,.85);
+      font-size: 13px;
+      font-weight: 700;
+      display: grid;
+      gap: 6px;
+    }
+    .lock-screen .lock-form input {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255,255,255,.12);
+      color: white;
+      font-size: 16px;
+      outline: none;
+    }
+    .lock-screen .lock-form input::placeholder { color: rgba(255,255,255,.45); }
+    .lock-screen .lock-form input:focus { border-color: rgba(255,255,255,.7); }
+    .lock-screen .lock-btn {
+      padding: 14px;
+      border: 0;
+      border-radius: 16px;
+      background: rgba(255,255,255,.2);
+      color: white;
+      font-size: 15px;
+      font-weight: 850;
+      cursor: pointer;
+    }
+    .lock-screen .lock-btn:active { transform: scale(.97); }
+    .lock-screen .lock-btn.primary { background: white; color: #F5B800; }
+    .lock-screen .lock-error {
+      color: #fca5a5;
+      font-size: 13px;
+      text-align: center;
+      min-height: 18px;
+    }
+    .lock-screen .lock-link {
+      color: rgba(255,255,255,.7);
+      font-size: 13px;
+      text-align: center;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .lock-screen .lock-link:hover { color: white; }
+    .header-btns {
+      display: flex;
+      gap: 8px;
+    }
+    .header-btns button {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.76);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .header-btns button:active { transform: scale(.97); }
+    .stats-switch {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+      background: #FFF8E1;
+    }
+    .stats-switch button {
+      padding: 7px 14px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .stats-switch button.active {
+      background: var(--primary);
+      color: white;
+    }
+    .year-view { display: none; }
+    .year-view.active { display: block; }
+    .month-view.active { display: block; }
+    .month-view { display: none; }
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 140px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .bar-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+    .bar-pair {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      flex: 1;
+      width: 100%;
+    }
+    .bar {
+      flex: 1;
+      max-width: 18px;
+      min-height: 2px;
+      border-radius: 4px 4px 0 0;
+      transition: height .3s ease;
+    }
+    .bar.income { background: var(--ok); }
+    .bar.expense { background: var(--danger); }
+    .bar-label {
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .bar-value {
+      font-size: 9px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .rate-list { display: grid; gap: 8px; }
+    .rate-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fafafa;
+    }
+    .rate-month {
+      font-weight: 700;
+      font-size: 13px;
+      min-width: 50px;
+    }
+    .rate-bar-wrap {
+      flex: 1;
+      height: 8px;
+      background: #e4e7ec;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .rate-bar {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--primary);
+      transition: width .3s ease;
+    }
+    .rate-value {
+      font-weight: 800;
+      font-size: 13px;
+      min-width: 42px;
+      text-align: right;
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <!-- 密码锁屏 -->
+  <div class="lock-screen" id="lockScreen">
+    <div class="star-person star-person-float" style="top:6%;right:10%;width:44px;height:44px;">
+      <svg viewBox="0 0 100 100" width="44" height="44">
+        <defs>
+          <linearGradient id="starBody2" x1="0" y1="0" x2="100" y2="100">
+            <stop offset="0%" stop-color="#FFD54F"/>
+            <stop offset="100%" stop-color="#F5B800"/>
+          </linearGradient>
+        </defs>
+        <path d="M50 8 L61 35 L90 35 L67 52 L76 80 L50 63 L24 80 L33 52 L10 35 L39 35 Z" fill="url(#starBody2)" stroke="#E8A838" stroke-width="2"/>
+        <circle cx="38" cy="45" r="4" fill="#4A3F35"/>
+        <circle cx="62" cy="45" r="4" fill="#4A3F35"/>
+        <path d="M42 55 Q50 62 58 55" fill="none" stroke="#4A3F35" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="30" cy="50" r="5.5" fill="#FF8A80" opacity=".6"/>
+        <circle cx="70" cy="50" r="5.5" fill="#FF8A80" opacity=".6"/>
+      </svg>
+    </div>
+    <div class="lock-icon">⭐</div>
+    <h2 id="lockTitle">Chany的家庭财务助手</h2>
+    <p class="lock-desc" id="lockDesc">首次使用，请设置访问密码</p>
+    <div style="position:absolute;top:10%;left:8%;opacity:.3;animation:twinkle 2.5s infinite;"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+    <div style="position:absolute;top:15%;right:10%;opacity:.25;animation:twinkle 3s infinite .8s;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+    <div style="position:absolute;bottom:20%;left:12%;opacity:.2;animation:twinkle 2s infinite 1.5s;"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+    <div style="position:absolute;bottom:25%;right:15%;opacity:.25;animation:twinkle 2.8s infinite .3s;"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+    <div class="lock-form" id="lockForm">
+      <div id="lockFields"></div>
+      <div class="lock-error" id="lockError"></div>
+      <button class="lock-btn primary" id="lockSubmit">确认</button>
+    </div>
+    <div class="lock-link hide" id="lockToggle" onclick="toggleLockMode()">切换模式</div>
+  </div>
+
+  <!-- 背景星星 -->
+  <div class="star-deco star-s1"><svg viewBox="0 0 24 24" fill="#FFE082"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+  <div class="star-deco star-s2"><svg viewBox="0 0 24 24" fill="#FFD54F"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+  <div class="star-deco star-s3"><svg viewBox="0 0 24 24" fill="#FFF176"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+  <div class="star-deco star-s4"><svg viewBox="0 0 24 24" fill="#FFE082"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+  <div class="star-deco star-s5"><svg viewBox="0 0 24 24" fill="#FFD54F"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+  <div class="star-deco star-s6"><svg viewBox="0 0 24 24" fill="#FFF176"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+
+  <div class="app" id="appMain" style="display:none;">
+    <header>
+      <div class="topbar">
+        <div>
+          <h1>Chany的家庭财务助手</h1>
+          <p class="subtitle">区分私人、工作垫资和还款提醒</p>
+        </div>
+        <div class="header-btns">
+          <button onclick="exportJSON()" title="导出备份">导出</button>
+          <button onclick="triggerImport()" title="导入恢复">导入</button>
+          <button onclick="showChangePassword()" title="修改密码">改密</button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)" />
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="home" class="view active">
+        <div class="hero">
+          <div class="star-person star-person-float" style="top:10px;right:14px;width:52px;height:52px;">
+            <svg viewBox="0 0 100 100" width="52" height="52">
+              <defs>
+                <linearGradient id="starBody" x1="0" y1="0" x2="100" y2="100">
+                  <stop offset="0%" stop-color="#FFD54F"/>
+                  <stop offset="100%" stop-color="#F5B800"/>
+                </linearGradient>
+              </defs>
+              <path d="M50 8 L61 35 L90 35 L67 52 L76 80 L50 63 L24 80 L33 52 L10 35 L39 35 Z" fill="url(#starBody)" stroke="#E8A838" stroke-width="2"/>
+              <circle cx="38" cy="45" r="4" fill="#4A3F35"/>
+              <circle cx="62" cy="45" r="4" fill="#4A3F35"/>
+              <path d="M42 55 Q50 62 58 55" fill="none" stroke="#4A3F35" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="30" cy="50" r="5.5" fill="#FF8A80" opacity=".6"/>
+              <circle cx="70" cy="50" r="5.5" fill="#FF8A80" opacity=".6"/>
+            </svg>
+          </div>
+          <div class="hero-stars">
+            <div class="hero-star" style="top:12%;left:8%;"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" opacity=".5"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+            <div class="hero-star" style="top:18%;right:12%;animation-delay:.5s;"><svg width="10" height="10" viewBox="0 0 24 24" fill="#fff" opacity=".4"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+            <div class="hero-star" style="bottom:20%;left:15%;animation-delay:1.2s;"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff" opacity=".45"><path d="M12 2l2.5 7.5H22l-6 4.5 2.5 7.5-6.5-4.5-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg></div>
+          </div>
+          <div class="label"><span class="cute-icon">✨</span>本月真实结余</div>
+          <div class="amount" id="netBalance">¥0</div>
+          <div class="metrics">
+            <div class="metric">
+              <span>私人支出</span>
+              <strong id="privateExpense">¥0</strong>
+            </div>
+            <div class="metric">
+              <span>未报销</span>
+              <strong id="unreimbursed">¥0</strong>
+            </div>
+            <div class="metric">
+              <span>待还/缴</span>
+              <strong id="dueAmount">¥0</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="quick">
+          <button data-quick="expense"><span>−</span>支出</button>
+          <button data-quick="income"><span>＋</span>收入</button>
+          <button data-quick="work"><span>↗</span>垫资</button>
+          <button data-quick="bill"><span>⏰</span>提醒</button>
+        </div>
+
+        <section class="card">
+          <div class="card-title">
+            <h2><span class="cute-icon">🔔</span>本月待处理</h2>
+            <button class="mini-btn" id="notifyBtn">开启提醒</button>
+          </div>
+          <div id="todoList" class="todo-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <h2><span class="cute-icon">📝</span>最近流水</h2>
+            <span class="muted" id="recordCount">0 笔</span>
+          </div>
+          <div id="recentRecords" class="record-list"></div>
+        </section>
+      </section>
+
+      <section id="entry" class="view">
+        <section class="card">
+          <div class="card-title">
+            <h2><span class="cute-icon">✏️</span>记一笔</h2>
+            <span class="muted">每笔都标清资金性质</span>
+          </div>
+          <form id="recordForm" class="form-grid">
+            <div class="two">
+              <label>类型
+                <select id="type">
+                  <option value="expense">支出</option>
+                  <option value="income">收入</option>
+                  <option value="transfer">内部转账</option>
+                  <option value="reimburse_income">报销到账</option>
+                  <option value="repayment">还款/缴费</option>
+                </select>
+              </label>
+              <label>资金性质
+                <select id="scope">
+                  <option value="private">私人</option>
+                  <option value="work">工作</option>
+                </select>
+              </label>
+            </div>
+            <div class="two">
+              <label>金额
+                <input id="amount" type="number" min="0" step="0.01" placeholder="例如 128.50" required />
+              </label>
+              <label>日期
+                <input id="date" type="date" required />
+              </label>
+            </div>
+            <div class="two">
+              <label>分类
+                <select id="category"></select>
+              </label>
+              <label>账户
+                <select id="account">
+                  <option>微信</option>
+                  <option>支付宝</option>
+                  <option>银行卡</option>
+                  <option>信用卡</option>
+                  <option>现金</option>
+                </select>
+              </label>
+            </div>
+            <label>备注
+              <textarea id="note" placeholder="例如：客户招待、家庭超市采购、信用卡还款"></textarea>
+            </label>
+            <div id="reimburseFields" class="form-grid hide">
+              <div class="two">
+                <label>报销状态
+                  <select id="reimburseStatus">
+                    <option value="待提交">待提交</option>
+                    <option value="已到账">已到账</option>
+                    <option value="不可报销">不可报销</option>
+                  </select>
+                </label>
+                <label>预计到账/提交截止
+                  <input id="reimburseDue" type="date" />
+                </label>
+              </div>
+              <label>项目/客户
+                <input id="project" type="text" placeholder="例如：A 项目、某客户、差旅" />
+              </label>
+            </div>
+            <button class="primary-btn" type="submit">保存流水</button>
+          </form>
+        </section>
+      </section>
+
+      <section id="bills" class="view">
+        <section class="card">
+          <div class="card-title">
+            <h2><span class="cute-icon">⏰</span>还款与缴费提醒</h2>
+            <span class="muted">到期前自动进入待办</span>
+          </div>
+          <form id="billForm" class="form-grid">
+            <label>提醒事项
+              <input id="billName" type="text" placeholder="例如：信用卡、房贷、保险、水电费" required />
+            </label>
+            <div class="two">
+              <label>金额
+                <input id="billAmount" type="number" min="0" step="0.01" placeholder="可选" />
+              </label>
+              <label>到期日
+                <input id="billDue" type="date" required />
+              </label>
+            </div>
+            <div class="two">
+              <label>周期
+                <select id="billCycle">
+                  <option value="once">一次性</option>
+                  <option value="monthly">每月</option>
+                  <option value="yearly">每年</option>
+                </select>
+              </label>
+              <label>提前提醒
+                <select id="billLead">
+                  <option value="1">提前 1 天</option>
+                  <option value="3" selected>提前 3 天</option>
+                  <option value="7">提前 7 天</option>
+                  <option value="14">提前 14 天</option>
+                </select>
+              </label>
+            </div>
+            <button class="primary-btn" type="submit">添加提醒</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <h2>提醒列表</h2>
+            <button class="mini-btn" id="clearCompletedBills">清理已完成</button>
+          </div>
+          <div id="billList" class="todo-list"></div>
+        </section>
+      </section>
+
+      <section id="stats" class="view">
+        <!-- 本月视图 -->
+        <div class="month-view active" id="monthView">
+        <section class="card">
+          <div class="card-title">
+            <h2>月度汇总</h2>
+            <div class="stats-switch">
+              <button class="active" onclick="switchStatsView('month')">本月</button>
+              <button onclick="switchStatsView('year')">全年</button>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat"><span>总收入</span><strong id="statIncome">¥0</strong></div>
+            <div class="stat"><span>真实私人支出</span><strong id="statRealExpense">¥0</strong></div>
+            <div class="stat"><span>可报销垫资</span><strong id="statWorkExpense">¥0</strong></div>
+            <div class="stat"><span>报销到账</span><strong id="statReimburseIncome">¥0</strong></div>
+            <div class="stat"><span>未报销余额</span><strong id="statUnreimbursed">¥0</strong></div>
+            <div class="stat"><span>待处理提醒</span><strong id="statOpenBills">0 项</strong></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <h2>分类支出</h2>
+            <button class="mini-btn danger-btn" id="resetAll">清空演示数据</button>
+          </div>
+          <div id="categoryStats" class="todo-list"></div>
+        </section>
+        </div>
+
+        <!-- 全年视图 -->
+        <div class="year-view" id="yearView">
+        <section class="card">
+          <div class="card-title">
+            <h2>年度汇总</h2>
+            <div class="stats-switch">
+              <button onclick="switchStatsView('month')">本月</button>
+              <button class="active" onclick="switchStatsView('year')">全年</button>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat"><span>年度总收入</span><strong id="yearStatIncome">¥0</strong></div>
+            <div class="stat"><span>年度私人支出</span><strong id="yearStatExpense">¥0</strong></div>
+            <div class="stat"><span>年度工作垫资</span><strong id="yearStatWork">¥0</strong></div>
+            <div class="stat"><span>年度报销到账</span><strong id="yearStatReimburse">¥0</strong></div>
+            <div class="stat"><span>年度结余</span><strong id="yearStatNet">¥0</strong></div>
+            <div class="stat"><span>月均支出</span><strong id="yearStatAvg">¥0</strong></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <h2>月度收支趋势</h2>
+            <span class="muted">绿=收入 红=支出</span>
+          </div>
+          <div id="barChart" class="bar-chart"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <h2>年度分类排行</h2>
+            <span class="muted">全年私人支出</span>
+          </div>
+          <div id="yearCategoryStats" class="todo-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <h2>年度垫资统计</h2>
+          </div>
+          <div class="stats-grid">
+            <div class="stat"><span>出差垫资总额</span><strong id="yearTripTotal">¥0</strong></div>
+            <div class="stat"><span>其他客情总额</span><strong id="yearOtherTotal">¥0</strong></div>
+            <div class="stat"><span>已到账总额</span><strong id="yearReimbursedTotal">¥0</strong></div>
+            <div class="stat"><span>到账率</span><strong id="yearReimbursedRate">0%</strong></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <h2>月度储蓄率</h2>
+            <span class="muted">(收入-支出)/收入</span>
+          </div>
+          <div id="savingsRateList" class="rate-list"></div>
+        </section>
+        </div>
+      </section>
+
+      <section id="finance" class="view">
+        <section class="card">
+          <div class="card-title">
+            <h2><span class="cute-icon">🏠</span>家庭总财务状况</h2>
+            <span class="muted">储蓄 + 本年结余 - 负债</span>
+          </div>
+          <div class="hero">
+            <div class="label">估算家庭净资产</div>
+            <div class="amount" id="netWorth">¥0</div>
+            <div class="metrics">
+              <div class="metric">
+                <span>储蓄合计</span>
+                <strong id="savingTotal">¥0</strong>
+              </div>
+              <div class="metric">
+                <span>本年结余</span>
+                <strong id="yearNet">¥0</strong>
+              </div>
+              <div class="metric">
+                <span>负债合计</span>
+                <strong id="debtTotal">¥0</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <h2><span class="cute-icon">💰</span>储蓄余额</h2>
+            <span class="muted">建议填年初或初始余额</span>
+          </div>
+          <form id="savingForm" class="form-grid">
+            <label>储蓄类别
+              <select id="savingCategory"></select>
+            </label>
+            <label>余额
+              <input id="savingAmount" type="number" min="0" step="0.01" placeholder="例如 50000" required />
+            </label>
+            <button class="primary-btn" type="submit">保存储蓄余额</button>
+          </form>
+          <div id="savingList" class="todo-list" style="margin-top: 12px;"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <h2><span class="cute-icon">🔄</span>资产转移</h2>
+            <span class="muted">调仓不计入收入或支出</span>
+          </div>
+          <form id="transferForm" class="form-grid">
+            <div class="two">
+              <label>从
+                <select id="transferFrom"></select>
+              </label>
+              <label>到
+                <select id="transferTo"></select>
+              </label>
+            </div>
+            <div class="two">
+              <label>金额
+                <input id="transferAmount" type="number" min="0" step="0.01" placeholder="例如 10000" required />
+              </label>
+              <label>日期
+                <input id="transferDate" type="date" required />
+              </label>
+            </div>
+            <label>备注
+              <input id="transferNote" type="text" placeholder="例如：活钱买入债券基金、固收到期回款" />
+            </label>
+            <button class="primary-btn" type="submit">保存资产转移</button>
+          </form>
+          <div id="transferList" class="todo-list" style="margin-top: 12px;"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <h2><span class="cute-icon">💳</span>负债余额</h2>
+            <span class="muted">房贷、车贷、信用卡等</span>
+          </div>
+          <form id="debtForm" class="form-grid">
+            <div class="two">
+              <label>负债名称
+                <input id="debtName" type="text" placeholder="例如：房贷、车贷、信用卡" required />
+              </label>
+              <label>当前余额
+                <input id="debtAmount" type="number" min="0" step="0.01" placeholder="例如 300000" required />
+              </label>
+            </div>
+            <button class="primary-btn" type="submit">添加或更新负债</button>
+          </form>
+          <div id="debtList" class="todo-list" style="margin-top: 12px;"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <nav class="tabs">
+    <button class="active" data-tab="home">首页</button>
+    <button data-tab="entry">记账</button>
+    <button data-tab="bills">提醒</button>
+    <button data-tab="stats">统计</button>
+    <button data-tab="finance">财务</button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ============ 密码锁屏 ============ */
+    const passwordKey = "familyFinancePwa.pwd";
+    const sessionKey = "familyFinancePwa.session";
+    const $ = (id) => document.getElementById(id);
+    let lockMode = "setup"; // "setup" | "login" | "change"
+
+    function hashPwd(str) {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) { h = ((h << 5) - h + str.charCodeAt(i)) | 0; }
+      return h.toString(36);
+    }
+
+    function hasPassword() { return !!localStorage.getItem(passwordKey); }
+    function isSession() { return sessionStorage.getItem(sessionKey) === "1"; }
+
+    function initLock() {
+      if (hasPassword()) {
+        if (isSession()) { unlockApp(); return; }
+        showLogin();
+      } else {
+        showSetup();
+      }
+    }
+
+    function showSetup() {
+      lockMode = "setup";
+      $("lockTitle").textContent = "Chany的家庭财务助手";
+      $("lockDesc").textContent = "首次使用，请设置访问密码";
+      $("lockFields").innerHTML = `
+        <label>设置密码
+          <input id="lockPwd1" type="password" placeholder="至少 4 位" autocomplete="new-password" />
+        </label>
+        <label>确认密码
+          <input id="lockPwd2" type="password" placeholder="再次输入" autocomplete="new-password" />
+        </label>`;
+      $("lockSubmit").textContent = "设置密码并进入";
+      $("lockToggle").classList.add("hide");
+      $("lockError").textContent = "";
+      $("lockScreen").classList.remove("hide");
+      $("lockPwd1").focus();
+    }
+
+    function showLogin() {
+      lockMode = "login";
+      $("lockTitle").textContent = "Chany的家庭财务助手";
+      $("lockDesc").textContent = "请输入密码以继续";
+      $("lockFields").innerHTML = `
+        <label>密码
+          <input id="lockPwd1" type="password" placeholder="请输入访问密码" autocomplete="current-password" />
+        </label>`;
+      $("lockSubmit").textContent = "解锁";
+      $("lockToggle").classList.add("hide");
+      $("lockError").textContent = "";
+      $("lockScreen").classList.remove("hide");
+      $("lockPwd1").focus();
+    }
+
+    function showChangePassword() {
+      lockMode = "change";
+      $("lockTitle").textContent = "修改访问密码";
+      $("lockDesc").textContent = "请先输入当前密码";
+      $("lockFields").innerHTML = `
+        <label>当前密码
+          <input id="lockPwdOld" type="password" placeholder="当前密码" autocomplete="current-password" />
+        </label>
+        <label>新密码
+          <input id="lockPwd1" type="password" placeholder="至少 4 位" autocomplete="new-password" />
+        </label>
+        <label>确认新密码
+          <input id="lockPwd2" type="password" placeholder="再次输入" autocomplete="new-password" />
+        </label>`;
+      $("lockSubmit").textContent = "修改密码";
+      $("lockToggle").classList.add("hide");
+      $("lockError").textContent = "";
+      $("lockScreen").classList.remove("hide");
+      $("lockPwdOld")?.focus();
+    }
+
+    function toggleLockMode() {
+      if (lockMode === "login") showSetup();
+      else if (lockMode === "setup") showLogin();
+    }
+
+    $("lockSubmit").addEventListener("click", handleLock);
+    $("lockFields").addEventListener("keydown", (e) => { if (e.key === "Enter") handleLock(); });
+
+    function handleLock() {
+      const err = $("lockError");
+      if (lockMode === "setup") {
+        const p1 = $("lockPwd1").value;
+        const p2 = $("lockPwd2").value;
+        if (p1.length < 4) { err.textContent = "密码至少 4 位"; return; }
+        if (p1 !== p2) { err.textContent = "两次密码不一致"; return; }
+        localStorage.setItem(passwordKey, hashPwd(p1));
+        sessionStorage.setItem(sessionKey, "1");
+        unlockApp();
+      } else if (lockMode === "login") {
+        const p1 = $("lockPwd1").value;
+        if (hashPwd(p1) !== localStorage.getItem(passwordKey)) { err.textContent = "密码错误"; return; }
+        sessionStorage.setItem(sessionKey, "1");
+        unlockApp();
+      } else if (lockMode === "change") {
+        const old = $("lockPwdOld")?.value || "";
+        const p1 = $("lockPwd1").value;
+        const p2 = $("lockPwd2").value;
+        if (hashPwd(old) !== localStorage.getItem(passwordKey)) { err.textContent = "当前密码错误"; return; }
+        if (p1.length < 4) { err.textContent = "新密码至少 4 位"; return; }
+        if (p1 !== p2) { err.textContent = "两次新密码不一致"; return; }
+        localStorage.setItem(passwordKey, hashPwd(p1));
+        showToast("密码已修改");
+        unlockApp();
+      }
+    }
+
+    function unlockApp() {
+      $("lockScreen").classList.add("hide");
+      $("appMain").style.display = "";
+      initApp();
+    }
+
+    /* ============ 数据导出与导入 ============ */
+    function exportJSON() {
+      const data = localStorage.getItem(storeKey);
+      if (!data) { showToast("没有数据可导出"); return; }
+      const ts = new Date().toISOString().slice(0, 10);
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `家庭财务备份_${ts}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("数据已导出");
+    }
+
+    function triggerImport() {
+      if (!confirm("导入会覆盖当前所有数据，确认继续吗？")) return;
+      $("importFile").click();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.records || !data.finance) {
+            showToast("文件格式不正确");
+            return;
+          }
+          localStorage.setItem(storeKey, JSON.stringify(normalizeState(data)));
+          state = load();
+          render();
+          showToast("数据已导入");
+        } catch {
+          showToast("文件解析失败");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    }
+
+    /* ============ 主应用逻辑 ============ */
+    const storeKey = "familyFinancePwa.v1";
+    const categories = {
+      private: ["餐饮", "购物", "日用", "交通", "健康", "娱乐", "水电煤话", "孩子", "人情", "学习", "旅行", "保险"],
+      work: ["月度交际", "月度交通", "出差", "其他客情"]
+    };
+    const incomeCategories = ["工资", "奖金", "人情", "理财"];
+    const savingCategories = ["养老年金", "增额寿理财", "债券基金", "银行固收", "手头活钱"];
+    const reimbursableCategories = ["出差", "其他客情"];
+
+    const sampleData = {
+      records: [
+        {
+          id: crypto.randomUUID(),
+          type: "expense",
+          scope: "private",
+          amount: 86,
+          date: today(),
+          category: "餐饮",
+          account: "微信",
+          note: "午餐",
+          reimburseStatus: "",
+          reimburseDue: "",
+          project: ""
+        },
+        {
+          id: crypto.randomUUID(),
+          type: "expense",
+          scope: "work",
+          amount: 580,
+          date: today(-2),
+          category: "出差",
+          account: "信用卡",
+          note: "出差交通，待报销",
+          reimburseStatus: "待提交",
+          reimburseDue: today(3),
+          project: "A 项目"
+        }
+      ],
+      finance: {
+        savings: {
+          养老年金: 0,
+          增额寿理财: 0,
+          债券基金: 0,
+          银行固收: 0,
+          手头活钱: 0
+        },
+        transfers: [],
+        debts: []
+      },
+      bills: [
+        {
+          id: crypto.randomUUID(),
+          name: "信用卡还款",
+          amount: 3200,
+          due: today(4),
+          cycle: "monthly",
+          lead: 3,
+          done: false
+        }
+      ]
+    };
+
+    let state = load();
+
+    const money = (num) => "¥" + Number(num || 0).toLocaleString("zh-CN", { maximumFractionDigits: 2 });
+    const ym = (d) => d.slice(0, 7);
+    const currentMonth = ym(today());
+
+    function today(offset = 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function load() {
+      const raw = localStorage.getItem(storeKey);
+      if (!raw) {
+        localStorage.setItem(storeKey, JSON.stringify(sampleData));
+        return structuredClone(sampleData);
+      }
+      try {
+        return normalizeState(JSON.parse(raw));
+      } catch {
+        return structuredClone(sampleData);
+      }
+    }
+
+    function normalizeState(data) {
+      const privateMap = {
+        医疗: "健康",
+        教育: "学习",
+        住房: "日用",
+        家庭餐饮: "餐饮",
+        水电物业: "水电煤话",
+        房贷房租: "日用",
+        孩子教育: "孩子",
+        老人支出: "日用",
+        家庭采购: "日用",
+        其他: "日用"
+      };
+      const workMap = {
+        差旅: "出差",
+        客户招待: "其他客情",
+        办公采购: "其他客情",
+        项目费用: "其他客情",
+        培训会议: "其他客情",
+        其他垫资: "其他客情"
+      };
+      data.records = (data.records || []).map((record) => {
+        const next = { ...record };
+        next.scope = next.scope === "work" ? "work" : "private";
+        if (next.type === "income") {
+          next.category = incomeCategories.includes(next.category) ? next.category : "工资";
+          next.reimburseStatus = "";
+          next.reimburseDue = "";
+        } else if (next.scope === "private") {
+          next.category = privateMap[next.category] || (categories.private.includes(next.category) ? next.category : "日用");
+          next.reimburseStatus = "";
+          next.reimburseDue = "";
+        } else {
+          next.category = workMap[next.category] || (categories.work.includes(next.category) ? next.category : "其他客情");
+          if (!reimbursableCategories.includes(next.category)) {
+            next.reimburseStatus = "";
+            next.reimburseDue = "";
+          } else if (!["待提交", "已到账", "不可报销"].includes(next.reimburseStatus)) {
+            next.reimburseStatus = "待提交";
+          }
+        }
+        return next;
+      });
+      data.finance = data.finance || {};
+      data.finance.savings = data.finance.savings || {};
+      savingCategories.forEach((name) => {
+        data.finance.savings[name] = Number(data.finance.savings[name] || 0);
+      });
+      data.finance.transfers = (data.finance.transfers || []).map((transfer) => ({
+        id: transfer.id || crypto.randomUUID(),
+        from: savingCategories.includes(transfer.from) ? transfer.from : "手头活钱",
+        to: savingCategories.includes(transfer.to) ? transfer.to : "债券基金",
+        amount: Number(transfer.amount || 0),
+        date: transfer.date || today(),
+        note: transfer.note || ""
+      })).filter((transfer) => transfer.from !== transfer.to && transfer.amount > 0);
+      data.finance.debts = (data.finance.debts || []).map((debt) => ({
+        id: debt.id || crypto.randomUUID(),
+        name: debt.name || "未命名负债",
+        amount: Number(debt.amount || 0)
+      }));
+      data.bills = data.bills || [];
+      return data;
+    }
+
+    function save() {
+      localStorage.setItem(storeKey, JSON.stringify(state));
+    }
+
+    function showToast(text) {
+      const el = $("toast");
+      el.textContent = text;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 1800);
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === tab));
+      document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function updateCategories() {
+      const scope = $("scope").value;
+      const category = $("category");
+      const selected = category.value;
+      const list = $("type").value === "income" ? incomeCategories : categories[scope];
+      category.innerHTML = list.map(c => `<option>${c}</option>`).join("");
+      if (list.includes(selected)) category.value = selected;
+      const isWorkExpense = scope === "work" && $("type").value === "expense" && reimbursableCategories.includes(category.value);
+      $("reimburseFields").classList.toggle("hide", !isWorkExpense);
+    }
+
+    function monthRecords() {
+      return state.records.filter(r => ym(r.date) === currentMonth);
+    }
+
+    function yearRecords() {
+      const year = new Date().getFullYear().toString();
+      return state.records.filter(r => r.date && r.date.startsWith(year));
+    }
+
+    function annualCashChange() {
+      return yearRecords().reduce((sum, record) => {
+        const amount = Number(record.amount || 0);
+        if (["income", "reimburse_income"].includes(record.type)) return sum + amount;
+        if (["expense", "repayment"].includes(record.type)) return sum - amount;
+        return sum;
+      }, 0);
+    }
+
+    function transferImpact(category) {
+      return state.finance.transfers.reduce((sum, transfer) => {
+        const amount = Number(transfer.amount || 0);
+        if (transfer.to === category) return sum + amount;
+        if (transfer.from === category) return sum - amount;
+        return sum;
+      }, 0);
+    }
+
+    function calculatedSaving(category) {
+      const base = Number(state.finance.savings[category] || 0);
+      const transferChange = transferImpact(category);
+      const cashChange = category === "手头活钱" ? annualCashChange() : 0;
+      return base + transferChange + cashChange;
+    }
+
+    function financeSummary() {
+      const dynamicSavings = savingCategories.reduce((sum, name) => sum + calculatedSaving(name), 0);
+      const yearNetValue = annualCashChange();
+      const debtTotalValue = state.finance.debts.reduce((sum, debt) => sum + Number(debt.amount || 0), 0);
+      return {
+        yearNetValue,
+        dynamicSavings,
+        debtTotalValue,
+        netWorthValue: dynamicSavings - debtTotalValue
+      };
+    }
+
+    function isOpenBill(bill) {
+      if (bill.done) return false;
+      const due = new Date(bill.due + "T00:00:00");
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const diff = Math.ceil((due - start) / 86400000);
+      return diff <= Number(bill.lead);
+    }
+
+    function dueLabel(date) {
+      const due = new Date(date + "T00:00:00");
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const diff = Math.ceil((due - now) / 86400000);
+      if (diff < 0) return `已逾期 ${Math.abs(diff)} 天`;
+      if (diff === 0) return "今天到期";
+      return `${diff} 天后到期`;
+    }
+
+    function nextDue(date, cycle) {
+      const d = new Date(date + "T00:00:00");
+      if (cycle === "monthly") d.setMonth(d.getMonth() + 1);
+      if (cycle === "yearly") d.setFullYear(d.getFullYear() + 1);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function completeBill(id) {
+      const bill = state.bills.find(b => b.id === id);
+      if (!bill) return;
+      if (bill.cycle === "once") {
+        bill.done = true;
+      } else {
+        bill.due = nextDue(bill.due, bill.cycle);
+        bill.done = false;
+      }
+      save();
+      render();
+      showToast("已更新提醒");
+    }
+
+    function deleteBill(id) {
+      state.bills = state.bills.filter(b => b.id !== id);
+      save();
+      render();
+      showToast("已删除提醒");
+    }
+
+    function markReimbursed(id) {
+      const record = state.records.find(r => r.id === id);
+      if (!record) return;
+      record.reimburseStatus = "已到账";
+      state.records.unshift({
+        id: crypto.randomUUID(),
+        type: "reimburse_income",
+        scope: "work",
+        amount: record.amount,
+        date: today(),
+        category: "报销到账",
+        account: record.account || "银行卡",
+        note: `报销到账：${record.note || record.category}`,
+        reimburseStatus: "",
+        reimburseDue: "",
+        project: record.project || ""
+      });
+      save();
+      render();
+      showToast("已标记报销到账");
+    }
+
+    function deleteRecord(id) {
+      state.records = state.records.filter(r => r.id !== id);
+      save();
+      render();
+      showToast("已删除流水");
+    }
+
+    function deleteDebt(id) {
+      state.finance.debts = state.finance.debts.filter(debt => debt.id !== id);
+      save();
+      render();
+      showToast("已删除负债");
+    }
+
+    function deleteTransfer(id) {
+      state.finance.transfers = state.finance.transfers.filter(transfer => transfer.id !== id);
+      save();
+      render();
+      showToast("已删除资产转移");
+    }
+
+    function render() {
+      $("monthLabel").textContent = new Date().toLocaleDateString("zh-CN", { year: "numeric", month: "long" });
+      const records = monthRecords();
+      const income = records.filter(r => r.type === "income").reduce((s, r) => s + Number(r.amount), 0);
+      const reimburseIncome = records.filter(r => r.type === "reimburse_income").reduce((s, r) => s + Number(r.amount), 0);
+      const realExpense = records.filter(r => r.type === "expense" && r.scope === "private").reduce((s, r) => s + Number(r.amount), 0);
+      const privateExpense = records.filter(r => r.type === "expense" && r.scope === "private").reduce((s, r) => s + Number(r.amount), 0);
+      const workExpense = records.filter(r => r.type === "expense" && r.scope === "work" && reimbursableCategories.includes(r.category)).reduce((s, r) => s + Number(r.amount), 0);
+      const unreimbursed = state.records
+        .filter(r => r.scope === "work" && r.type === "expense" && reimbursableCategories.includes(r.category) && !["已到账", "不可报销"].includes(r.reimburseStatus))
+        .reduce((s, r) => s + Number(r.amount), 0);
+      const openBills = state.bills.filter(isOpenBill);
+      const dueAmount = openBills.reduce((s, b) => s + Number(b.amount || 0), 0);
+      const net = income + reimburseIncome - realExpense;
+
+      $("netBalance").textContent = money(net);
+      $("privateExpense").textContent = money(privateExpense);
+      $("unreimbursed").textContent = money(unreimbursed);
+      $("dueAmount").textContent = money(dueAmount);
+      $("recordCount").textContent = `${state.records.length} 笔`;
+
+      $("statIncome").textContent = money(income);
+      $("statRealExpense").textContent = money(realExpense);
+      $("statWorkExpense").textContent = money(workExpense);
+      $("statReimburseIncome").textContent = money(reimburseIncome);
+      $("statUnreimbursed").textContent = money(unreimbursed);
+      $("statOpenBills").textContent = `${openBills.length} 项`;
+
+      renderTodos(openBills);
+      renderRecords();
+      renderBills();
+      renderCategoryStats(records);
+      renderFinance();
+    }
+
+    function renderTodos(openBills) {
+      const workTodos = state.records
+        .filter(r => r.scope === "work" && r.type === "expense" && reimbursableCategories.includes(r.category) && !["已到账", "不可报销"].includes(r.reimburseStatus))
+        .sort((a, b) => (a.reimburseDue || "9999").localeCompare(b.reimburseDue || "9999"));
+      const html = [
+        ...openBills.map(b => `
+          <div class="item">
+            <div>
+              <div class="item-title">${b.name}</div>
+              <div class="item-meta">${dueLabel(b.due)} · ${b.cycle === "monthly" ? "每月" : b.cycle === "yearly" ? "每年" : "一次性"}</div>
+              <div class="tag-row"><span class="tag due">还款/缴费</span></div>
+            </div>
+            <div>
+              <div class="money expense">${money(b.amount)}</div>
+              <button class="mini-btn" onclick="completeBill('${b.id}')">完成</button>
+            </div>
+          </div>
+        `),
+        ...workTodos.slice(0, 5).map(r => `
+          <div class="item">
+            <div>
+              <div class="item-title">${r.project || r.category}</div>
+              <div class="item-meta">${r.reimburseStatus || "待处理"}${r.reimburseDue ? " · " + dueLabel(r.reimburseDue) : ""} · ${r.note || "工作垫资"}</div>
+              <div class="tag-row"><span class="tag work">工作垫资</span><span class="tag due">待报销</span></div>
+            </div>
+            <div>
+              <div class="money expense">${money(r.amount)}</div>
+              <button class="mini-btn" onclick="markReimbursed('${r.id}')">到账</button>
+            </div>
+          </div>
+        `)
+      ].join("");
+      $("todoList").innerHTML = html || `<div class="empty">目前没有临近到期的缴费，也没有待处理垫资。</div>`;
+    }
+
+    function renderRecords() {
+      const html = state.records.slice(0, 12).map(r => {
+        const isExpense = ["expense", "repayment"].includes(r.type);
+        const sign = isExpense ? "-" : r.type === "transfer" ? "" : "+";
+        const scopeText = { private: "私人", work: "工作" }[r.scope] || "私人";
+        const typeText = { expense: "支出", income: "收入", transfer: "转账", reimburse_income: "报销到账", repayment: "还款/缴费" }[r.type];
+        return `
+          <div class="item">
+            <div>
+              <div class="item-title">${r.category}</div>
+              <div class="item-meta">${r.date} · ${r.account} · ${r.note || "无备注"}</div>
+              <div class="tag-row">
+                <span class="tag ${r.scope === "work" ? "work" : r.scope === "private" ? "private" : ""}">${scopeText}</span>
+                <span class="tag">${typeText}</span>
+                ${r.reimburseStatus ? `<span class="tag due">${r.reimburseStatus}</span>` : ""}
+              </div>
+            </div>
+            <div>
+              <div class="money ${isExpense ? "expense" : "income"}">${sign}${money(r.amount)}</div>
+              <button class="mini-btn danger-btn" onclick="deleteRecord('${r.id}')">删除</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+      $("recentRecords").innerHTML = html || `<div class="empty">还没有流水，先记一笔。</div>`;
+    }
+
+    function renderBills() {
+      const sorted = [...state.bills].sort((a, b) => a.due.localeCompare(b.due));
+      $("billList").innerHTML = sorted.map(b => `
+        <div class="item">
+          <div>
+            <div class="item-title">${b.name}</div>
+            <div class="item-meta">${b.due} · ${dueLabel(b.due)} · ${b.cycle === "monthly" ? "每月" : b.cycle === "yearly" ? "每年" : "一次性"} · 提前 ${b.lead} 天</div>
+            <div class="tag-row"><span class="tag ${b.done ? "done" : isOpenBill(b) ? "due" : ""}">${b.done ? "已完成" : isOpenBill(b) ? "待处理" : "未到提醒期"}</span></div>
+          </div>
+          <div>
+            <div class="money expense">${money(b.amount)}</div>
+            <button class="mini-btn" onclick="completeBill('${b.id}')">完成</button>
+            <button class="mini-btn danger-btn" onclick="deleteBill('${b.id}')">删除</button>
+          </div>
+        </div>
+      `).join("") || `<div class="empty">还没有还款或缴费提醒。</div>`;
+    }
+
+    function renderCategoryStats(records) {
+      const map = new Map();
+      records
+        .filter(r => r.type === "expense" && r.scope === "private")
+        .forEach(r => map.set(r.category, (map.get(r.category) || 0) + Number(r.amount)));
+      const html = [...map.entries()].sort((a, b) => b[1] - a[1]).map(([name, value]) => `
+        <div class="item">
+          <div>
+            <div class="item-title">${name}</div>
+            <div class="item-meta">本月真实私人支出</div>
+          </div>
+          <div class="money expense">${money(value)}</div>
+        </div>
+      `).join("");
+      $("categoryStats").innerHTML = html || `<div class="empty">本月还没有私人支出。</div>`;
+    }
+
+    /* ============ 年度统计 ============ */
+    function switchStatsView(view) {
+      $("monthView").classList.toggle("active", view === "month");
+      $("yearView").classList.toggle("active", view === "year");
+      if (view === "year") renderYearStats();
+    }
+
+    function renderYearStats() {
+      const yr = new Date().getFullYear().toString();
+      const yrRecords = state.records.filter(r => r.date && r.date.startsWith(yr));
+      const yrIncome = yrRecords.filter(r => r.type === "income").reduce((s, r) => s + Number(r.amount), 0);
+      const yrReimburse = yrRecords.filter(r => r.type === "reimburse_income").reduce((s, r) => s + Number(r.amount), 0);
+      const yrExpense = yrRecords.filter(r => r.type === "expense" && r.scope === "private").reduce((s, r) => s + Number(r.amount), 0);
+      const yrWork = yrRecords.filter(r => r.type === "expense" && r.scope === "work" && reimbursableCategories.includes(r.category)).reduce((s, r) => s + Number(r.amount), 0);
+      const yrNet = yrIncome + yrReimburse - yrExpense;
+      const monthsWithData = new Set(yrRecords.filter(r => r.type === "expense" && r.scope === "private").map(r => r.date.slice(5, 7))).size;
+      const avgExpense = monthsWithData > 0 ? yrExpense / monthsWithData : 0;
+
+      $("yearStatIncome").textContent = money(yrIncome);
+      $("yearStatExpense").textContent = money(yrExpense);
+      $("yearStatWork").textContent = money(yrWork);
+      $("yearStatReimburse").textContent = money(yrReimburse);
+      $("yearStatNet").textContent = money(yrNet);
+      $("yearStatAvg").textContent = money(avgExpense);
+
+      // 月度趋势柱状图
+      renderBarChart(yrRecords);
+
+      // 年度分类排行
+      const catMap = new Map();
+      yrRecords.filter(r => r.type === "expense" && r.scope === "private").forEach(r => catMap.set(r.category, (catMap.get(r.category) || 0) + Number(r.amount)));
+      const totalPrivateExp = yrExpense || 1;
+      $("yearCategoryStats").innerHTML = [...catMap.entries()].sort((a, b) => b[1] - a[1]).map(([name, value]) => `
+        <div class="item">
+          <div>
+            <div class="item-title">${name}</div>
+            <div class="item-meta">占比 ${(value / totalPrivateExp * 100).toFixed(1)}%</div>
+          </div>
+          <div class="money expense">${money(value)}</div>
+        </div>
+      `).join("") || `<div class="empty">本年度还没有私人支出。</div>`;
+
+      // 垫资统计
+      const tripTotal = yrRecords.filter(r => r.type === "expense" && r.scope === "work" && r.category === "出差").reduce((s, r) => s + Number(r.amount), 0);
+      const otherTotal = yrRecords.filter(r => r.type === "expense" && r.scope === "work" && r.category === "其他客情").reduce((s, r) => s + Number(r.amount), 0);
+      const reimbursedTotal = yrRecords.filter(r => r.type === "expense" && r.scope === "work" && reimbursableCategories.includes(r.category) && r.reimburseStatus === "已到账").reduce((s, r) => s + Number(r.amount), 0);
+      const totalReimb = tripTotal + otherTotal;
+      $("yearTripTotal").textContent = money(tripTotal);
+      $("yearOtherTotal").textContent = money(otherTotal);
+      $("yearReimbursedTotal").textContent = money(reimbursedTotal);
+      $("yearReimbursedRate").textContent = totalReimb > 0 ? (reimbursedTotal / totalReimb * 100).toFixed(1) + "%" : "0%";
+
+      // 月度储蓄率
+      renderSavingsRate(yrRecords);
+    }
+
+    function renderBarChart(yrRecords) {
+      const yr = new Date().getFullYear();
+      const months = [];
+      for (let m = 0; m < 12; m++) {
+        const mm = String(m + 1).padStart(2, "0");
+        const mRecords = yrRecords.filter(r => r.date && r.date.startsWith(`${yr}-${mm}`));
+        const inc = mRecords.filter(r => ["income", "reimburse_income"].includes(r.type)).reduce((s, r) => s + Number(r.amount), 0);
+        const exp = mRecords.filter(r => r.type === "expense" && r.scope === "private").reduce((s, r) => s + Number(r.amount), 0);
+        months.push({ label: `${m + 1}月`, inc, exp });
+      }
+      const maxVal = Math.max(...months.map(m => Math.max(m.inc, m.exp)), 1);
+
+      $("barChart").innerHTML = months.map(m => {
+        const incH = Math.max((m.inc / maxVal) * 120, 2);
+        const expH = Math.max((m.exp / maxVal) * 120, 2);
+        return `
+          <div class="bar-group">
+            <div class="bar-value">${m.inc > 0 ? money(m.inc).replace("¥","") : ""}</div>
+            <div class="bar-pair">
+              <div class="bar income" style="height:${incH}px" title="收入 ${money(m.inc)}"></div>
+              <div class="bar expense" style="height:${expH}px" title="支出 ${money(m.exp)}"></div>
+            </div>
+            <div class="bar-label">${m.label}</div>
+          </div>`;
+      }).join("");
+    }
+
+    function renderSavingsRate(yrRecords) {
+      const yr = new Date().getFullYear();
+      const items = [];
+      for (let m = 0; m < 12; m++) {
+        const mm = String(m + 1).padStart(2, "0");
+        const mRecords = yrRecords.filter(r => r.date && r.date.startsWith(`${yr}-${mm}`));
+        const inc = mRecords.filter(r => ["income", "reimburse_income"].includes(r.type)).reduce((s, r) => s + Number(r.amount), 0);
+        const exp = mRecords.filter(r => ["expense", "repayment"].includes(r.type) && r.scope === "private").reduce((s, r) => s + Number(r.amount), 0);
+        const rate = inc > 0 ? ((inc - exp) / inc * 100) : 0;
+        items.push({ month: `${m + 1}月`, rate: Math.min(Math.max(rate, -100), 100), hasData: inc > 0 || exp > 0 });
+      }
+
+      $("savingsRateList").innerHTML = items.filter(i => i.hasData).map(i => {
+        const pct = Math.max(i.rate, 0);
+        const color = i.rate >= 30 ? "var(--ok)" : i.rate >= 0 ? "var(--primary)" : "var(--danger)";
+        return `
+          <div class="rate-item">
+            <div class="rate-month">${i.month}</div>
+            <div class="rate-bar-wrap">
+              <div class="rate-bar" style="width:${pct}%;background:${color}"></div>
+            </div>
+            <div class="rate-value" style="color:${color}">${i.rate.toFixed(0)}%</div>
+          </div>`;
+      }).join("") || `<div class="empty">本年度还没有数据。</div>`;
+    }
+
+    function renderFinance() {
+      const summary = financeSummary();
+      $("netWorth").textContent = money(summary.netWorthValue);
+      $("savingTotal").textContent = money(summary.dynamicSavings);
+      $("yearNet").textContent = money(summary.yearNetValue);
+      $("debtTotal").textContent = money(summary.debtTotalValue);
+
+      $("savingList").innerHTML = savingCategories.map((name) => {
+        const base = Number(state.finance.savings[name] || 0);
+        const transferChange = transferImpact(name);
+        const shown = calculatedSaving(name);
+        const note = name === "手头活钱"
+          ? `初始 ${money(base)} + 本年收支 ${money(summary.yearNetValue)} + 调仓 ${money(transferChange)}`
+          : `初始 ${money(base)} + 调仓 ${money(transferChange)}`;
+        return `
+          <div class="item">
+            <div>
+              <div class="item-title">${name}</div>
+              <div class="item-meta">${note}</div>
+            </div>
+            <div class="money income">${money(shown)}</div>
+          </div>
+        `;
+      }).join("");
+
+      $("transferList").innerHTML = [...state.finance.transfers].sort((a, b) => b.date.localeCompare(a.date)).map((transfer) => `
+        <div class="item">
+          <div>
+            <div class="item-title">${transfer.from} → ${transfer.to}</div>
+            <div class="item-meta">${transfer.date} · ${transfer.note || "资产结构调整，不影响净资产"}</div>
+          </div>
+          <div>
+            <div class="money income">${money(transfer.amount)}</div>
+            <button class="mini-btn danger-btn" onclick="deleteTransfer('${transfer.id}')">删除</button>
+          </div>
+        </div>
+      `).join("") || `<div class="empty">还没有资产转移记录。</div>`;
+
+      $("debtList").innerHTML = state.finance.debts.map((debt) => `
+        <div class="item">
+          <div>
+            <div class="item-title">${debt.name}</div>
+            <div class="item-meta">当前负债余额</div>
+          </div>
+          <div>
+            <div class="money expense">${money(debt.amount)}</div>
+            <button class="mini-btn danger-btn" onclick="deleteDebt('${debt.id}')">删除</button>
+          </div>
+        </div>
+      `).join("") || `<div class="empty">还没有录入负债。</div>`;
+    }
+
+    $("recordForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const record = {
+        id: crypto.randomUUID(),
+        type: $("type").value,
+        scope: $("scope").value,
+        amount: Number($("amount").value),
+        date: $("date").value,
+        category: $("category").value,
+        account: $("account").value,
+        note: $("note").value.trim(),
+        reimburseStatus: $("scope").value === "work" && $("type").value === "expense" && reimbursableCategories.includes($("category").value) ? $("reimburseStatus").value : "",
+        reimburseDue: $("scope").value === "work" && $("type").value === "expense" && reimbursableCategories.includes($("category").value) ? $("reimburseDue").value : "",
+        project: $("project").value.trim()
+      };
+      state.records.unshift(record);
+      save();
+      e.target.reset();
+      $("date").value = today();
+      updateCategories();
+      render();
+      showToast("流水已保存");
+      switchTab("home");
+    });
+
+    $("billForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      state.bills.push({
+        id: crypto.randomUUID(),
+        name: $("billName").value.trim(),
+        amount: Number($("billAmount").value || 0),
+        due: $("billDue").value,
+        cycle: $("billCycle").value,
+        lead: Number($("billLead").value),
+        done: false
+      });
+      save();
+      e.target.reset();
+      $("billLead").value = "3";
+      render();
+      showToast("提醒已添加");
+    });
+
+    $("savingForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      state.finance.savings[$("savingCategory").value] = Number($("savingAmount").value || 0);
+      save();
+      $("savingAmount").value = "";
+      render();
+      showToast("储蓄余额已保存");
+    });
+
+    $("transferForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const from = $("transferFrom").value;
+      const to = $("transferTo").value;
+      const amount = Number($("transferAmount").value || 0);
+      if (from === to) {
+        showToast("转出和转入类别不能相同");
+        return;
+      }
+      state.finance.transfers.unshift({
+        id: crypto.randomUUID(),
+        from,
+        to,
+        amount,
+        date: $("transferDate").value,
+        note: $("transferNote").value.trim()
+      });
+      save();
+      e.target.reset();
+      $("transferDate").value = today();
+      render();
+      showToast("资产转移已保存");
+    });
+
+    $("debtForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = $("debtName").value.trim();
+      const amount = Number($("debtAmount").value || 0);
+      const existing = state.finance.debts.find(debt => debt.name === name);
+      if (existing) {
+        existing.amount = amount;
+      } else {
+        state.finance.debts.push({ id: crypto.randomUUID(), name, amount });
+      }
+      save();
+      e.target.reset();
+      render();
+      showToast("负债余额已保存");
+    });
+
+    $("notifyBtn").addEventListener("click", async () => {
+      if (!("Notification" in window)) {
+        showToast("当前浏览器不支持通知");
+        return;
+      }
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        const open = state.bills.filter(isOpenBill);
+        new Notification("Chany的家庭财务助手", { body: open.length ? `你有 ${open.length} 个还款/缴费事项需要处理。` : "通知已开启，目前没有待处理提醒。" });
+      } else {
+        showToast("未开启通知权限");
+      }
+    });
+
+    $("clearCompletedBills").addEventListener("click", () => {
+      state.bills = state.bills.filter(b => !b.done);
+      save();
+      render();
+      showToast("已清理完成事项");
+    });
+
+    $("resetAll").addEventListener("click", () => {
+      if (!confirm("确认清空当前数据并恢复演示数据吗？")) return;
+      state = structuredClone(sampleData);
+      save();
+      render();
+      showToast("已恢复演示数据");
+    });
+
+    document.querySelectorAll(".tabs button").forEach(btn => {
+      btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+    });
+
+    document.querySelectorAll("[data-quick]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const action = btn.dataset.quick;
+        if (action === "bill") {
+          $("billDue").value = today(3);
+          switchTab("bills");
+          return;
+        }
+        $("type").value = action === "income" ? "income" : "expense";
+        $("scope").value = action === "work" ? "work" : "private";
+        updateCategories();
+        switchTab("entry");
+        setTimeout(() => $("amount").focus(), 250);
+      });
+    });
+
+    ["scope", "type", "category"].forEach(id => $(id).addEventListener("change", updateCategories));
+
+    function initApp() {
+      $("date").value = today();
+      $("billDue").value = today(3);
+      $("savingCategory").innerHTML = savingCategories.map(name => `<option>${name}</option>`).join("");
+      $("transferFrom").innerHTML = savingCategories.map(name => `<option>${name}</option>`).join("");
+      $("transferTo").innerHTML = savingCategories.map(name => `<option>${name}</option>`).join("");
+      $("transferFrom").value = "手头活钱";
+      $("transferTo").value = "债券基金";
+      $("transferDate").value = today();
+      updateCategories();
+      render();
+    }
+
+    initLock();
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js"));
+    }
+  </script>
+</body>
+</html>

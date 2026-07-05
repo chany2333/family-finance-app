@@ -1,0 +1,19 @@
+{
+  "name": "Chany的家庭财务助手",
+  "short_name": "Chany财务",
+  "description": "用于家庭收支、工作垫资、报销和还款提醒的手机端 PWA。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FFF9E6",
+  "theme_color": "#F5B800",
+  "lang": "zh-CN",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
