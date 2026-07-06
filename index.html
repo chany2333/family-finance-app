@@ -1304,7 +1304,7 @@
     const sampleData = {
       records: [
         {
-          id: crypto.randomUUID(),
+          id: genId(),
           type: "expense",
           scope: "private",
           amount: 86,
@@ -1317,7 +1317,7 @@
           project: ""
         },
         {
-          id: crypto.randomUUID(),
+          id: genId(),
           type: "expense",
           scope: "work",
           amount: 580,
@@ -1343,7 +1343,7 @@
       },
       bills: [
         {
-          id: crypto.randomUUID(),
+          id: genId(),
           name: "信用卡还款",
           amount: 3200,
           due: today(4),
@@ -1428,7 +1428,7 @@
         data.finance.savings[name] = Number(data.finance.savings[name] || 0);
       });
       data.finance.transfers = (data.finance.transfers || []).map((transfer) => ({
-        id: transfer.id || crypto.randomUUID(),
+        id: transfer.id || genId(),
         from: savingCategories.includes(transfer.from) ? transfer.from : "手头活钱",
         to: savingCategories.includes(transfer.to) ? transfer.to : "债券基金",
         amount: Number(transfer.amount || 0),
@@ -1436,7 +1436,7 @@
         note: transfer.note || ""
       })).filter((transfer) => transfer.from !== transfer.to && transfer.amount > 0);
       data.finance.debts = (data.finance.debts || []).map((debt) => ({
-        id: debt.id || crypto.randomUUID(),
+        id: debt.id || genId(),
         name: debt.name || "未命名负债",
         amount: Number(debt.amount || 0)
       }));
@@ -1446,6 +1446,11 @@
 
     function save() {
       localStorage.setItem(storeKey, JSON.stringify(state));
+    }
+
+    function genId() {
+      if (crypto && crypto.randomUUID) return crypto.randomUUID();
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
     }
 
     function showToast(text) {
@@ -1570,7 +1575,7 @@
       if (!record) return;
       record.reimburseStatus = "已到账";
       state.records.unshift({
-        id: crypto.randomUUID(),
+        id: genId(),
         type: "reimburse_income",
         scope: "work",
         amount: record.amount,
@@ -1904,7 +1909,7 @@
     $("recordForm").addEventListener("submit", (e) => {
       e.preventDefault();
       const record = {
-        id: crypto.randomUUID(),
+        id: genId(),
         type: $("type").value,
         scope: $("scope").value,
         amount: Number($("amount").value),
@@ -1929,7 +1934,7 @@
     $("billForm").addEventListener("submit", (e) => {
       e.preventDefault();
       state.bills.push({
-        id: crypto.randomUUID(),
+        id: genId(),
         name: $("billName").value.trim(),
         amount: Number($("billAmount").value || 0),
         due: $("billDue").value,
@@ -1963,7 +1968,7 @@
         return;
       }
       state.finance.transfers.unshift({
-        id: crypto.randomUUID(),
+        id: genId(),
         from,
         to,
         amount,
@@ -1985,7 +1990,7 @@
       if (existing) {
         existing.amount = amount;
       } else {
-        state.finance.debts.push({ id: crypto.randomUUID(), name, amount });
+        state.finance.debts.push({ id: genId(), name, amount });
       }
       save();
       e.target.reset();
