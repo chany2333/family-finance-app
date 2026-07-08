@@ -881,7 +881,10 @@
                 <input id="project" type="text" placeholder="例如：A 项目、某客户、差旅" />
               </label>
             </div>
-            <button class="primary-btn" type="submit">保存流水</button>
+            <div style="display:flex;gap:10px;">
+              <button class="primary-btn" type="submit" id="recordSubmit" style="flex:1;">保存流水</button>
+              <button class="ghost-btn hide" type="button" id="cancelEdit" onclick="cancelEdit()">取消</button>
+            </div>
           </form>
         </section>
       </section>
@@ -1592,11 +1595,44 @@
       showToast("已标记报销到账");
     }
 
+    let editingRecordId = null;
+
     function deleteRecord(id) {
       state.records = state.records.filter(r => r.id !== id);
       save();
       render();
       showToast("已删除流水");
+    }
+
+    function editRecord(id) {
+      const r = state.records.find(x => x.id === id);
+      if (!r) return;
+      editingRecordId = id;
+      $("type").value = r.type;
+      $("scope").value = r.scope;
+      $("amount").value = r.amount;
+      $("date").value = r.date;
+      updateCategories();
+      $("category").value = r.category;
+      $("account").value = r.account;
+      $("note").value = r.note || "";
+      if (r.scope === "work" && r.type === "expense" && reimbursableCategories.includes(r.category)) {
+        $("reimburseStatus").value = r.reimburseStatus || "待提交";
+        $("reimburseDue").value = r.reimburseDue || "";
+        $("project").value = r.project || "";
+      }
+      $("recordSubmit").textContent = "更新流水";
+      $("cancelEdit").classList.remove("hide");
+      switchTab("entry");
+    }
+
+    function cancelEdit() {
+      editingRecordId = null;
+      $("recordForm").reset();
+      $("date").value = today();
+      $("recordSubmit").textContent = "保存流水";
+      $("cancelEdit").classList.add("hide");
+      updateCategories();
     }
 
     function deleteDebt(id) {
@@ -1626,7 +1662,11 @@
         .reduce((s, r) => s + Number(r.amount), 0);
       const openBills = state.bills.filter(isOpenBill);
       const dueAmount = openBills.reduce((s, b) => s + Number(b.amount || 0), 0);
-      const net = income + reimburseIncome - realExpense;
+
+      // 本月真实结余：工作工资+奖金 - 私人支出（排除人情、理财）
+      const salaryIncome = records.filter(r => r.type === "income" && r.scope === "work" && ["工资", "奖金"].includes(r.category)).reduce((s, r) => s + Number(r.amount), 0);
+      const privateExpenseForNet = records.filter(r => r.type === "expense" && r.scope === "private" && !["人情", "理财"].includes(r.category)).reduce((s, r) => s + Number(r.amount), 0);
+      const net = salaryIncome - privateExpenseForNet;
 
       $("netBalance").textContent = money(net);
       $("privateExpense").textContent = money(privateExpense);
@@ -1650,37 +1690,19 @@
 
     function renderTodos(openBills) {
       const workTodos = state.records
-        .filter(r => r.scope === "work" && r.type === "expense" && reimbursableCategories.includes(r.category) && !["已到账", "不可报销"].includes(r.reimburseStatus))
-        .sort((a, b) => (a.reimburseDue || "9999").localeCompare(b.reimburseDue || "9999"));
-      const html = [
-        ...openBills.map(b => `
-          <div class="item">
-            <div>
-              <div class="item-title">${b.name}</div>
-              <div class="item-meta">${dueLabel(b.due)} · ${b.cycle === "monthly" ? "每月" : b.cycle === "yearly" ? "每年" : "一次性"}</div>
-              <div class="tag-row"><span class="tag due">还款/缴费</span></div>
-            </div>
-            <div>
-              <div class="money expense">${money(b.amount)}</div>
-              <button class="mini-btn" onclick="completeBill('${b.id}')">完成</button>
-            </div>
+        .filter(r => r.scope === "work" && r.type === "expense" && reimbursableCategories.includes(r.category) && !["已到账", "不可报销"].includes(r.reimburseStatus));
+      const billTotal = openBills.reduce((s, b) => s + Number(b.amount || 0), 0);
+      const workTotal = workTodos.reduce((s, r) => s + Number(r.amount || 0), 0);
+      const total = billTotal + workTotal;
+      $("todoList").innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;">
+          <div>
+            <div style="font-size:13px;color:var(--muted);">还款/缴费 + 待报销垫资</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:2px;">${openBills.length} 笔缴费 · ${workTodos.length} 笔垫资</div>
           </div>
-        `),
-        ...workTodos.slice(0, 5).map(r => `
-          <div class="item">
-            <div>
-              <div class="item-title">${r.project || r.category}</div>
-              <div class="item-meta">${r.reimburseStatus || "待处理"}${r.reimburseDue ? " · " + dueLabel(r.reimburseDue) : ""} · ${r.note || "工作垫资"}</div>
-              <div class="tag-row"><span class="tag work">工作垫资</span><span class="tag due">待报销</span></div>
-            </div>
-            <div>
-              <div class="money expense">${money(r.amount)}</div>
-              <button class="mini-btn" onclick="markReimbursed('${r.id}')">到账</button>
-            </div>
-          </div>
-        `)
-      ].join("");
-      $("todoList").innerHTML = html || `<div class="empty">目前没有临近到期的缴费，也没有待处理垫资。</div>`;
+          <div class="money expense" style="font-size:22px;font-weight:800;">${money(total)}</div>
+        </div>
+      `;
     }
 
     function renderRecords() {
@@ -1702,7 +1724,10 @@
             </div>
             <div>
               <div class="money ${isExpense ? "expense" : "income"}">${sign}${money(r.amount)}</div>
-              <button class="mini-btn danger-btn" onclick="deleteRecord('${r.id}')">删除</button>
+              <div style="display:flex;gap:6px;justify-content:flex-end;">
+                <button class="mini-btn" onclick="editRecord('${r.id}')">修改</button>
+                <button class="mini-btn danger-btn" onclick="deleteRecord('${r.id}')">删除</button>
+              </div>
             </div>
           </div>
         `;
@@ -1910,7 +1935,7 @@
       e.preventDefault();
       try {
       const record = {
-        id: genId(),
+        id: editingRecordId || genId(),
         type: $("type").value,
         scope: $("scope").value,
         amount: Number($("amount").value),
@@ -1922,13 +1947,22 @@
         reimburseDue: $("scope").value === "work" && $("type").value === "expense" && reimbursableCategories.includes($("category").value) ? $("reimburseDue").value : "",
         project: $("project").value.trim()
       };
-      state.records.unshift(record);
+      if (editingRecordId) {
+        const idx = state.records.findIndex(r => r.id === editingRecordId);
+        if (idx >= 0) state.records[idx] = record;
+        editingRecordId = null;
+        $("recordSubmit").textContent = "保存流水";
+        $("cancelEdit").classList.add("hide");
+        showToast("流水已更新");
+      } else {
+        state.records.unshift(record);
+        showToast("流水已保存");
+      }
       save();
       e.target.reset();
       $("date").value = today();
       updateCategories();
       render();
-      showToast("流水已保存");
       switchTab("home");
       } catch(err) { showToast("保存失败：" + err.message); console.error(err); }
     });
