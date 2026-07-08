@@ -1908,6 +1908,7 @@
 
     $("recordForm").addEventListener("submit", (e) => {
       e.preventDefault();
+      try {
       const record = {
         id: genId(),
         type: $("type").value,
@@ -1929,10 +1930,12 @@
       render();
       showToast("流水已保存");
       switchTab("home");
+      } catch(err) { showToast("保存失败：" + err.message); console.error(err); }
     });
 
     $("billForm").addEventListener("submit", (e) => {
       e.preventDefault();
+      try {
       state.bills.push({
         id: genId(),
         name: $("billName").value.trim(),
@@ -1947,19 +1950,23 @@
       $("billLead").value = "3";
       render();
       showToast("提醒已添加");
+      } catch(err) { showToast("保存失败：" + err.message); console.error(err); }
     });
 
     $("savingForm").addEventListener("submit", (e) => {
       e.preventDefault();
+      try {
       state.finance.savings[$("savingCategory").value] = Number($("savingAmount").value || 0);
       save();
       $("savingAmount").value = "";
       render();
       showToast("储蓄余额已保存");
+      } catch(err) { showToast("保存失败：" + err.message); console.error(err); }
     });
 
     $("transferForm").addEventListener("submit", (e) => {
       e.preventDefault();
+      try {
       const from = $("transferFrom").value;
       const to = $("transferTo").value;
       const amount = Number($("transferAmount").value || 0);
@@ -1980,10 +1987,12 @@
       $("transferDate").value = today();
       render();
       showToast("资产转移已保存");
+      } catch(err) { showToast("保存失败：" + err.message); console.error(err); }
     });
 
     $("debtForm").addEventListener("submit", (e) => {
       e.preventDefault();
+      try {
       const name = $("debtName").value.trim();
       const amount = Number($("debtAmount").value || 0);
       const existing = state.finance.debts.find(debt => debt.name === name);
@@ -1996,6 +2005,7 @@
       e.target.reset();
       render();
       showToast("负债余额已保存");
+      } catch(err) { showToast("保存失败：" + err.message); console.error(err); }
     });
 
     $("notifyBtn").addEventListener("click", async () => {

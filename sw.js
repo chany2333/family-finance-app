@@ -1,4 +1,4 @@
-const CACHE_NAME = "family-finance-app-v9";
+const CACHE_NAME = "family-finance-app-v10";
 const ASSETS = [
   "./",
   "./index.html",
@@ -24,6 +24,23 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
+
+  // index.html 始终走网络优先，确保拿到最新代码
+  if (url.pathname.endsWith("index.html") || url.pathname.endsWith("/")) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // 其他资源走缓存优先
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request).then((response) => {
