@@ -1,4 +1,4 @@
-const CACHE_NAME = "family-finance-app-v13";
+const CACHE_NAME = "family-finance-app-v14";
 const ASSETS = [
   "./",
   "./index.html",
@@ -31,11 +31,20 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
+          if (!response || response.status !== 200) throw new Error("Bad response");
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => {
+          return caches.match(event.request).then((cached) => {
+            if (cached) return cached;
+            return new Response(
+              "<!DOCTYPE html><html><body style='font-family:sans-serif;padding:40px;text-align:center;'><h2>加载失败</h2><p>请检查网络连接，然后刷新页面。</p><button onclick='location.reload()'>刷新</button></body></html>",
+              { headers: { "Content-Type": "text/html" } }
+            );
+          });
+        })
     );
     return;
   }
@@ -44,9 +53,12 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request).then((response) => {
+        if (!response || response.status !== 200) throw new Error("Bad response");
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         return response;
+      }).catch(() => {
+        return new Response("", { status: 404 });
       });
     })
   );
