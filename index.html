@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <!-- deployed: v12 -->
+  <!-- deployed: v13 -->
   <meta name="theme-color" content="#F5B800" />
   <title>Chany的家庭财务助手</title>
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -741,6 +741,7 @@
           <p class="subtitle"><span id="monthLabel"></span> · 区分私人、工作垫资和还款提醒</p>
         </div>
         <div class="header-btns">
+          <span id="syncStatus" style="font-size:12px;color:var(--muted);margin-right:6px;"></span>
           <button onclick="exportJSON()" title="导出备份">导出</button>
           <button onclick="triggerImport()" title="导入恢复">导入</button>
           <button onclick="showChangePassword()" title="修改密码">改密</button>
@@ -1143,6 +1144,59 @@
       return h.toString(36);
     }
 
+    /* ============ Supabase 云端同步 ============ */
+    const SUPABASE_URL = "https://lbtqmilkeffljuofdayn.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_He4J1vNWNSBizqeeOQzFow_qoEmW6o2";
+
+    async function fetchFromCloud(userId) {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/user_data?user_id=eq.${encodeURIComponent(userId)}&select=*`, {
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data[0]?.data || null;
+      } catch { return null; }
+    }
+
+    async function saveToCloud(userId, payload) {
+      try {
+        const checkRes = await fetch(`${SUPABASE_URL}/rest/v1/user_data?user_id=eq.${encodeURIComponent(userId)}&select=id`, {
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+        });
+        const existing = await checkRes.json();
+        const body = JSON.stringify({ data: payload, updated_at: new Date().toISOString() });
+        if (existing.length > 0) {
+          await fetch(`${SUPABASE_URL}/rest/v1/user_data?user_id=eq.${encodeURIComponent(userId)}`, {
+            method: "PATCH",
+            headers: {
+              "apikey": SUPABASE_KEY,
+              "Authorization": `Bearer ${SUPABASE_KEY}`,
+              "Content-Type": "application/json",
+              "Prefer": "return=minimal"
+            },
+            body
+          });
+        } else {
+          await fetch(`${SUPABASE_URL}/rest/v1/user_data`, {
+            method: "POST",
+            headers: {
+              "apikey": SUPABASE_KEY,
+              "Authorization": `Bearer ${SUPABASE_KEY}`,
+              "Content-Type": "application/json",
+              "Prefer": "return=minimal"
+            },
+            body: JSON.stringify({ user_id: userId, data: payload })
+          });
+        }
+      } catch { /* silent fail, localStorage is primary */ }
+    }
+
+    function setSyncStatus(text) {
+      const el = $("syncStatus");
+      if (el) el.textContent = text;
+    }
+
     function hasPassword() { return !!localStorage.getItem(passwordKey); }
     function isSession() { return sessionStorage.getItem(sessionKey) === "1"; }
 
@@ -1224,13 +1278,17 @@
         const p2 = $("lockPwd2").value;
         if (p1.length < 4) { err.textContent = "密码至少 4 位"; return; }
         if (p1 !== p2) { err.textContent = "两次密码不一致"; return; }
-        localStorage.setItem(passwordKey, hashPwd(p1));
+        const h = hashPwd(p1);
+        localStorage.setItem(passwordKey, h);
         sessionStorage.setItem(sessionKey, "1");
+        state.passwordHash = h;
         unlockApp();
       } else if (lockMode === "login") {
         const p1 = $("lockPwd1").value;
-        if (hashPwd(p1) !== localStorage.getItem(passwordKey)) { err.textContent = "密码错误"; return; }
+        const h = hashPwd(p1);
+        if (h !== localStorage.getItem(passwordKey)) { err.textContent = "密码错误"; return; }
         sessionStorage.setItem(sessionKey, "1");
+        state.passwordHash = h;
         unlockApp();
       } else if (lockMode === "change") {
         const old = $("lockPwdOld")?.value || "";
@@ -1239,15 +1297,33 @@
         if (hashPwd(old) !== localStorage.getItem(passwordKey)) { err.textContent = "当前密码错误"; return; }
         if (p1.length < 4) { err.textContent = "新密码至少 4 位"; return; }
         if (p1 !== p2) { err.textContent = "两次新密码不一致"; return; }
-        localStorage.setItem(passwordKey, hashPwd(p1));
+        const newH = hashPwd(p1);
+        localStorage.setItem(passwordKey, newH);
+        state.passwordHash = newH;
         showToast("密码已修改");
         unlockApp();
       }
     }
 
-    function unlockApp() {
+    async function unlockApp() {
       $("lockScreen").classList.add("hide");
       $("appMain").style.display = "";
+      if (state.passwordHash) {
+        setSyncStatus("同步中...");
+        const cloudData = await fetchFromCloud(state.passwordHash);
+        if (cloudData) {
+          const localUpdated = state.updatedAt || 0;
+          const cloudUpdated = cloudData.updatedAt || 0;
+          if (cloudUpdated > localUpdated) {
+            const savedHash = state.passwordHash;
+            state = normalizeState(cloudData);
+            state.passwordHash = savedHash;
+            localStorage.setItem(storeKey, JSON.stringify(state));
+            showToast("已从云端恢复数据");
+          }
+        }
+        setSyncStatus("已同步");
+      }
       initApp();
     }
 
@@ -1305,6 +1381,7 @@
     const reimbursableCategories = ["出差", "其他客情"];
 
     const sampleData = {
+      updatedAt: Date.now(),
       records: [
         {
           id: genId(),
@@ -1448,7 +1525,12 @@
     }
 
     function save() {
+      state.updatedAt = Date.now();
       localStorage.setItem(storeKey, JSON.stringify(state));
+      if (state.passwordHash) {
+        setSyncStatus("同步中...");
+        saveToCloud(state.passwordHash, state).then(() => setSyncStatus("已同步")).catch(() => setSyncStatus("同步失败"));
+      }
     }
 
     function genId() {
@@ -2104,6 +2186,7 @@
       $("transferDate").value = today();
       updateCategories();
       render();
+      if (state.passwordHash) setSyncStatus("已同步");
     }
 
     initLock();
