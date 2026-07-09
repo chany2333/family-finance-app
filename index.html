@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <!-- deployed: v14 -->
+  <!-- deployed: v15 -->
   <meta name="theme-color" content="#F5B800" />
   <title>Chany的家庭财务助手</title>
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -1282,6 +1282,7 @@
         localStorage.setItem(passwordKey, h);
         sessionStorage.setItem(sessionKey, "1");
         state.passwordHash = h;
+        save();
         unlockApp();
       } else if (lockMode === "login") {
         const p1 = $("lockPwd1").value;
@@ -1289,6 +1290,7 @@
         if (h !== localStorage.getItem(passwordKey)) { err.textContent = "密码错误"; return; }
         sessionStorage.setItem(sessionKey, "1");
         state.passwordHash = h;
+        save();
         unlockApp();
       } else if (lockMode === "change") {
         const old = $("lockPwdOld")?.value || "";
@@ -1300,6 +1302,7 @@
         const newH = hashPwd(p1);
         localStorage.setItem(passwordKey, newH);
         state.passwordHash = newH;
+        save();
         showToast("密码已修改");
         unlockApp();
       }
