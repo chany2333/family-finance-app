@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <!-- deployed: v15 -->
+  <!-- deployed: v16 -->
   <meta name="theme-color" content="#F5B800" />
   <title>Chany的家庭财务助手</title>
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -2195,7 +2195,7 @@
     initLock();
 
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js"));
+      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
     }
   </script>
 </body>
